@@ -28,10 +28,25 @@ class HomePage extends StatefulWidget {
 
 /// State of a [HomePage].
 class _HomePageState extends State<HomePage> {
+  /// The URL of the currently displayed image.
   String imageUrl = '';
+
+  /// Temporary holder for the new image URL entered by the user.
   String tempImageUrl = '';
+
+  /// Controls the visibility of the menu overlay.
   bool isMenuVisible = false;
+
+  /// Indicates whether the application is in fullscreen mode.
   bool isFullScreen = false;
+
+
+  @override
+  void initState() {
+    super.initState();
+    // Registering a view type for HTML image element
+    _registerImageView('html-img');
+  }
 
   /// Enters fullscreen mode using JavaScript interop.
   void enterFullScreen() {
@@ -49,27 +64,25 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    // Registering a view type for HTML image element
+  /// Registers a new HTML image view with a unique [viewType].
+  void _registerImageView(String viewType) {
     ui.platformViewRegistry.registerViewFactory(
-      'html-img',
+      viewType,
           (int viewId) {
         final imgElement = html.ImageElement()
           ..style.width = '100%'
           ..style.height = '100%'
           ..style.borderRadius = '12px'
+          ..src = imageUrl
           ..onDoubleClick.listen((event) {
             isFullScreen ? exitFullScreen() : enterFullScreen();
           });
-        if (imageUrl.isNotEmpty) {
-          imgElement.src = imageUrl;
-        }
         return imgElement;
       },
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -119,22 +132,7 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           imageUrl = tempImageUrl;
                           // Re-register the view to update the image source
-                          ui.platformViewRegistry.registerViewFactory(
-                            'html-img',
-                                (int viewId) {
-                              final imgElement = html.ImageElement()
-                                ..style.width = '100%'
-                                ..style.height = '100%'
-                                ..style.borderRadius = '12px'
-                                ..src = imageUrl
-                                ..onDoubleClick.listen((event) {
-                                  isFullScreen
-                                      ? exitFullScreen()
-                                      : enterFullScreen();
-                                });
-                              return imgElement;
-                            },
-                          );
+                          _registerImageView('html-img');
                         });
                       },
                       child: const Padding(
